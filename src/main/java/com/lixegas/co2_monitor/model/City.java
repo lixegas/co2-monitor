@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -20,6 +21,13 @@ public class City {
 
     private String name;
 
-    private Instant createAt;
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
+    private List<District> districts;
+
 }

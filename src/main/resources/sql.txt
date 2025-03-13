@@ -1,0 +1,39 @@
+CREATE SCHEMA co2_monitor;
+
+USE co2_monitor;
+
+CREATE TABLE City (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    created_at VARCHAR(255) NOT NULL,
+    updated_at VARCHAR(255)
+);
+
+
+CREATE TABLE District (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    created_at VARCHAR(255) NOT NULL,
+    updated_at VARCHAR(255),
+    fk_id_city BIGINT NOT NULL,
+    FOREIGN KEY (fk_id_city) REFERENCES City(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Sensor (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    created_at VARCHAR(255) NOT NULL,
+    updated_at VARCHAR(255),
+    fk_id_district BIGINT NOT NULL UNIQUE,
+    FOREIGN KEY (fk_id_district) REFERENCES District(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Track (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    co2Level DOUBLE,
+    created_at VARCHAR(255),
+    fk_id_sensor BIGINT NOT NULL,
+    FOREIGN KEY (fk_id_sensor) REFERENCES Sensor(id) ON DELETE CASCADE
+);
