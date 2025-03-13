@@ -1,12 +1,52 @@
 package com.lixegas.co2_monitor.controller;
 
-
+import com.lixegas.co2_monitor.model.dto.SensorDTO;
+import com.lixegas.co2_monitor.model.request.SensorCreationRequest;
+import com.lixegas.co2_monitor.service.SensorService;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/sensor")
 @AllArgsConstructor
 public class SensorController {
+
+    private final SensorService sensorService;
+
+    @GetMapping("/")
+    public ResponseEntity<List<SensorDTO>> getAllSensors() {
+        return ResponseEntity.ok(sensorService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SensorDTO> getSensorById(@PathVariable Long id) {
+        return sensorService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @PostMapping("/")
+    public ResponseEntity<SensorDTO> createSensor(@RequestBody SensorCreationRequest sensorCreationRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(sensorService.save(sensorCreationRequest));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SensorDTO> updateSensor(@PathVariable Long id, @RequestBody SensorDTO sensorDTO) {
+        return sensorService.findById(id)
+                .map(existingSensor -> ResponseEntity.ok(sensorService.update(id, sensorDTO)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSensor(@PathVariable Long id) {
+        if (sensorService.findById(id).isPresent()) {
+            sensorService.delete(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 }

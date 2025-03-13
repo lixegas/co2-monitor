@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Normalized;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -26,4 +27,12 @@ public class Sensor {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToOne
+    @JoinColumn(name = "fk_id_district", nullable = false)
+    private District district;
+
+    @OneToMany(mappedBy = "sensor", cascade = CascadeType.ALL)
+    private List<Track> tracks;
+
 }
