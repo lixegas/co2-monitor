@@ -1,7 +1,6 @@
 package com.lixegas.co2_monitor.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,10 +9,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "co2_reading")
+@Table(name = "track")
 public class Track {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private
+    private Double co2Level;
+
+    @Column(name = "created_at")
+    private String createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_id_sensor", nullable = false)
+    private Sensor sensor;
 }

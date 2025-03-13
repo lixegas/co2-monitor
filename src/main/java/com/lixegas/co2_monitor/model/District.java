@@ -25,4 +25,11 @@ public class District {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_id_city", nullable = false)
+    private City city;
+
+    @OneToOne(mappedBy = "district", cascade = CascadeType.ALL)
+    private Sensor sensor;
 }
