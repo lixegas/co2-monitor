@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "sensor")
+@Table(name = "Sensor")
 @Data
 public class Sensor {
 

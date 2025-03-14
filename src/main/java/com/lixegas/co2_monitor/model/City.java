@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "city")
+@Table(name = "City")
 public class City {
 
     @Id
@@ -30,4 +30,7 @@ public class City {
     @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
     private List<District> districts;
 
+    @ManyToOne
+    @JoinColumn(name = "fk_id_user", nullable = false)
+    private User user;
 }

@@ -2,11 +2,22 @@ CREATE SCHEMA co2_monitor;
 
 USE co2_monitor;
 
+CREATE TABLE User(
+id BIGINT PRIMARY KEY,
+username VARCHAR(100) NOT NULL,
+pass VARCHAR(100) NOT NULL,
+role VARCHAR(10) NOT NULL,
+created_at TIMESTAMP NOT NULL,
+updated_at TIMESTAMP
+);
+
 CREATE TABLE City (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     created_at VARCHAR(255) NOT NULL,
-    updated_at VARCHAR(255)
+    updated_at VARCHAR(255),
+    fk_id_user BIGINT NOT NULL,
+    FOREIGN KEY (fk_id_user) REFERENCES User(id) ON DELETE CASCADE
 );
 
 

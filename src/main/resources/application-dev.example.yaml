@@ -10,3 +10,7 @@ spring:
     ddl-auto:
     hibernate:
       dialect:
+
+springdoc:
+  swagger-ui:
+    path:
