@@ -1,5 +1,6 @@
 package com.lixegas.co2_monitor.service;
 
+import com.lixegas.co2_monitor.model.District;
 import com.lixegas.co2_monitor.model.dto.SensorDTO;
 import com.lixegas.co2_monitor.model.Sensor;
 import com.lixegas.co2_monitor.model.request.SensorCreationRequest;
@@ -23,35 +24,48 @@ public class SensorService {
     private final DistrictRepository districtRepository;
 
     public List<SensorDTO> findAll() {
-        return sensorRepository.findAll().stream()
-                .map(sensor -> new SensorDTO(
-                        sensor.getId(),
-                        sensor.getName(),
-                        sensor.getCreatedAt(),
-                        sensor.getUpdatedAt(),
-                        sensor.getDistrict().getId()))
-                .collect(Collectors.toList());
+        try {
+            return sensorRepository.findAll().stream()
+                    .map(sensor -> new SensorDTO(
+                            sensor.getId(),
+                            sensor.getName(),
+                            sensor.getCreatedAt(),
+                            sensor.getUpdatedAt(),
+                            sensor.getDistrict().getId()))
+                    .collect(Collectors.toList());
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Errore durante il recupero");
+        }
     }
 
-    public Optional<SensorDTO> findById(Long id) {
-        return sensorRepository.findById(id)
-                .map(sensor -> new SensorDTO(
+    public SensorDTO findById(Long id) {
+        Sensor sensor = sensorRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Distretto non trovato"));
+
+        return new SensorDTO(
                         sensor.getId(),
                         sensor.getName(),
                         sensor.getCreatedAt(),
                         sensor.getUpdatedAt(),
-                        sensor.getDistrict().getId()));
+                        sensor.getDistrict().getId());
     }
 
     public SensorDTO save(SensorCreationRequest sensorCreationRequest) {
         Sensor sensor = new Sensor();
 
-        var district = districtRepository.findById(sensorCreationRequest.getDistrictId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found"));
+        Optional<Sensor> optionalSensor = sensorRepository.findByName(sensorCreationRequest.getName());
+        if (optionalSensor.isPresent()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Questo sensore gia esiste");
+        } else {
+            sensor.setName(sensorCreationRequest.getName());
+        }
 
-        sensor.setName(sensorCreationRequest.getName());
         sensor.setCreatedAt(Instant.now());
         sensor.setUpdatedAt(null);
+
+        District district = districtRepository.findById(sensorCreationRequest.getDistrictId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found"));
+
         sensor.setDistrict(district);
 
         Sensor savedSensor = sensorRepository.save(sensor);

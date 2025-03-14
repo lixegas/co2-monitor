@@ -24,29 +24,25 @@ public class SensorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SensorDTO> getSensorById(@PathVariable Long id) {
-        return sensorService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        SensorDTO sensorDTO = sensorService.findById(id);
+        return ResponseEntity.ok(sensorDTO);
     }
 
     @PostMapping("/")
     public ResponseEntity<SensorDTO> createSensor(@RequestBody SensorCreationRequest sensorCreationRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(sensorService.save(sensorCreationRequest));
+        SensorDTO sensorDTO = sensorService.save(sensorCreationRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(sensorDTO);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SensorDTO> updateSensor(@PathVariable Long id, @RequestBody SensorDTO sensorDTO) {
-        return sensorService.findById(id)
-                .map(existingSensor -> ResponseEntity.ok(sensorService.update(id, sensorDTO)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        SensorDTO sensorDTO1 = sensorService.update(id,sensorDTO);
+        return ResponseEntity.ok().body(sensorDTO1);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSensor(@PathVariable Long id) {
-        if (sensorService.findById(id).isPresent()) {
-            sensorService.delete(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        sensorService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
