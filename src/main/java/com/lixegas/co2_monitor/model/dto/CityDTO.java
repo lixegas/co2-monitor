@@ -1,5 +1,6 @@
 package com.lixegas.co2_monitor.model.dto;
 
+import com.lixegas.co2_monitor.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,4 +15,5 @@ public class CityDTO {
     private String name;
     private Instant createAt;
     private Instant updatedAt;
+    private User user;
 }

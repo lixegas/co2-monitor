@@ -10,5 +10,4 @@ public class Co2MonitorApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(Co2MonitorApplication.class, args);
 	}
-
 }

@@ -20,18 +20,14 @@ public class CityController {
 
     @GetMapping("/")
     public ResponseEntity<List<CityDTO>> getAllCities() {
-        List<CityDTO> cities = cityService.findAll();
-        return ResponseEntity.ok(cities);
+            List<CityDTO> cities = cityService.findAll();
+            return ResponseEntity.ok(cities);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CityDTO> getCityById(@PathVariable Long id) {
-        try {
-            CityDTO cityDTO = cityService.findById(id);
-            return ResponseEntity.ok(cityDTO);
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).build();
-        }
+        CityDTO cityDTO = cityService.findById(id);
+        return ResponseEntity.ok(cityDTO);
     }
 
     @PostMapping("/")
@@ -42,21 +38,13 @@ public class CityController {
 
     @PutMapping("/{id}")
     public ResponseEntity<CityDTO> updateCity(@PathVariable Long id, @RequestBody CityDTO cityDTO) {
-        try {
-            CityDTO updatedCity = cityService.update(id, cityDTO);
-            return ResponseEntity.ok(updatedCity);
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).build();
-        }
+        CityDTO updatedCity = cityService.update(id, cityDTO);
+        return ResponseEntity.ok(updatedCity);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCity(@PathVariable Long id) {
-        try {
-            cityService.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).build();
-        }
+        cityService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

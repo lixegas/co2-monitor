@@ -2,6 +2,7 @@ package com.lixegas.co2_monitor.service;
 
 import com.lixegas.co2_monitor.model.dto.CityDTO;
 import com.lixegas.co2_monitor.model.City;
+import com.lixegas.co2_monitor.model.dto.UserDTO;
 import com.lixegas.co2_monitor.model.request.CityCreationRequest;
 import com.lixegas.co2_monitor.repository.CityRepository;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,13 +22,17 @@ public class CityService {
     private final CityRepository cityRepository;
 
     public List<CityDTO> findAll() {
-        return cityRepository.findAll().stream()
-                .map(city -> new CityDTO(
-                        city.getId(),
-                        city.getName(),
-                        city.getCreatedAt(),
-                        city.getUpdatedAt()))
-                .collect(Collectors.toList());
+        try {
+            return cityRepository.findAll().stream()
+                    .map(city -> new CityDTO(
+                            city.getId(),
+                            city.getName(),
+                            city.getCreatedAt(),
+                            city.getUpdatedAt()))
+                    .collect(Collectors.toList());
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Errore durante il recupero");
+        }
     }
 
     public CityDTO findById(Long id) {
@@ -42,7 +48,14 @@ public class CityService {
 
     public CityDTO save(CityCreationRequest cityCreationRequest) {
         City city = new City();
-        city.setName(cityCreationRequest.getName());
+
+        Optional<City> existingCity = cityRepository.findByName(cityCreationRequest.getName());
+        if (existingCity.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La città esiste già");
+        } else {
+            city.setName(cityCreationRequest.getName());
+        }
+
         city.setCreatedAt(Instant.now());
         city.setUpdatedAt(null);
 
@@ -77,3 +90,4 @@ public class CityService {
         cityRepository.deleteById(id);
     }
 }
+
