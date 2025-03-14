@@ -27,12 +27,8 @@ public class DistrictController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DistrictDTO> getDistrictById(@PathVariable Long id) {
-        try {
-            DistrictDTO districtDTO = districtService.findById(id);
-            return ResponseEntity.ok(districtDTO);
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).build();
-        }
+        DistrictDTO districtDTO = districtService.findById(id);
+        return ResponseEntity.ok(districtDTO);
     }
 
     @PostMapping("/")
@@ -43,21 +39,13 @@ public class DistrictController {
 
     @PutMapping("/{id}")
     public ResponseEntity<DistrictDTO> updateDistrict(@PathVariable Long id, @RequestBody DistrictDTO districtDTO) {
-        try {
-            DistrictDTO updatedDistrict = districtService.update(id, districtDTO);
-            return ResponseEntity.ok(updatedDistrict);
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).build();
-        }
+        DistrictDTO updatedDistrict = districtService.update(id, districtDTO);
+        return ResponseEntity.ok(updatedDistrict);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDistrict(@PathVariable Long id) {
-        try {
-            districtService.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).build();
-        }
+        districtService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

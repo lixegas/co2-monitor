@@ -3,6 +3,7 @@ package com.lixegas.co2_monitor.service;
 import com.lixegas.co2_monitor.model.City;
 import com.lixegas.co2_monitor.model.dto.DistrictDTO;
 import com.lixegas.co2_monitor.model.request.DistrictCreationRequest;
+import com.lixegas.co2_monitor.repository.CityRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,16 +24,21 @@ import java.util.stream.Collectors;
 public class DistrictService {
 
     private final DistrictRepository districtRepository;
+    private final CityRepository cityRepository;
 
     public List<DistrictDTO> findAll() {
-        return districtRepository.findAll().stream()
-                .map(district -> new DistrictDTO(
-                        district.getId(),
-                        district.getName(),
-                        district.getCreatedAt(),
-                        district.getUpdatedAt(),
-                        district.getCity().getId()))
-                .collect(Collectors.toList());
+        try {
+            return districtRepository.findAll().stream()
+                    .map(district -> new DistrictDTO(
+                            district.getId(),
+                            district.getName(),
+                            district.getCreatedAt(),
+                            district.getUpdatedAt(),
+                            district.getCity().getId()))
+                    .collect(Collectors.toList());
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Errore durante il recupero");
+        }
     }
 
     public DistrictDTO findById(Long id) {
@@ -46,27 +53,28 @@ public class DistrictService {
                 district.getCity().getId());
     }
 
-    public List<DistrictDTO> findByCityId(Long cityId) {
-        return districtRepository.findByCityId(cityId).stream()
-                .map(district -> new DistrictDTO(
-                        district.getId(),
-                        district.getName(),
-                        district.getCreatedAt(),
-                        district.getUpdatedAt(),
-                        district.getCity().getId()))
-                .collect(Collectors.toList());
-    }
-
     public DistrictDTO save(DistrictCreationRequest districtCreationRequest) {
         District district = new District();
-        district.setName(districtCreationRequest.getName());
+
+        Optional<District> districtOptional = districtRepository.findByName(districtCreationRequest.getName());
+        if(districtOptional.isPresent()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Questo distretto esiste già");
+        } else {
+            district.setName(districtCreationRequest.getName());
+        }
+
         district.setCreatedAt(Instant.now());
         district.setUpdatedAt(null);
 
 
-        City city = new City();
-        city.setId(districtCreationRequest.getCityId());
-        district.setCity(city);
+        Optional<City> cityOptional = cityRepository.findById(districtCreationRequest.getCityId());
+        if (cityOptional.isPresent()){
+            City city = new City();
+            city.setId(districtCreationRequest.getCityId());
+            district.setCity(city);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Questa città non esiste");
+        }
 
         District savedDistrict = districtRepository.save(district);
 
@@ -84,9 +92,9 @@ public class DistrictService {
 
         district.setName(districtDTO.getName());
         district.setUpdatedAt(Instant.now());
-        City city = new City();
-        city.setId(districtDTO.getCityId());
-        district.setCity(city);
+
+        Optional<City> optionalCity = cityRepository.findById(districtDTO.getCityId());
+        optionalCity.ifPresent(district::setCity);
 
         District updatedDistrict = districtRepository.save(district);
 
