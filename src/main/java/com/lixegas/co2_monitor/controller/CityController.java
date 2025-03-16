@@ -61,7 +61,7 @@ public class CityController {
     @PutMapping("/{id}")
     @Operation(summary = "Update a city")
     @ApiResponse(responseCode = "200", description = "City updated",
-            content = @Content(schema = @Schema(implementation = CityDTO.class)))
+            content = @Content(schema = @Schema(implementation = CityCreationRequest.class)))
     @ApiResponse(responseCode = "404", description = "City not found",
             content = @Content(schema = @Schema(example = "{\"error\": \"City with ID 1 not found\"}")))
     @ApiResponse(responseCode = "409", description = "City name already exists",

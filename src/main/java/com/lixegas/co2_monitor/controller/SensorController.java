@@ -49,7 +49,7 @@ public class SensorController {
     @PostMapping("/")
     @Operation(summary = "Create a new sensor")
     @ApiResponse(responseCode = "201", description = "Sensor created",
-            content = @Content(schema = @Schema(implementation = SensorDTO.class)))
+            content = @Content(schema = @Schema(implementation = SensorCreationRequest.class)))
     @ApiResponse(responseCode = "409", description = "Invalid data (sensor already exists)",
             content = @Content(schema = @Schema(example = "{\"error\": \"This sensor already exists\"}")))
     @ApiResponse(responseCode = "404", description = "District not found",
@@ -61,7 +61,7 @@ public class SensorController {
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing sensor")
     @ApiResponse(responseCode = "200", description = "Sensor updated",
-            content = @Content(schema = @Schema(implementation = SensorDTO.class)))
+            content = @Content(schema = @Schema(implementation = SensorCreationRequest.class)))
     @ApiResponse(responseCode = "404", description = "Sensor not found",
             content = @Content(schema = @Schema(example = "{\"error\": \"Sensor not found\"}")))
     public ResponseEntity<SensorDTO> updateSensor(@Parameter(description = "Sensor ID", example = "1") @PathVariable Long id, @Valid @RequestBody SensorDTO sensorDTO) {

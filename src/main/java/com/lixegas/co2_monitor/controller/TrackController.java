@@ -56,7 +56,7 @@ public class TrackController {
     @PostMapping("/")
     @Operation(summary = "Create a new track")
     @ApiResponse(responseCode = "201", description = "Track created successfully",
-            content = @Content(schema = @Schema(implementation = TrackDTO.class)))
+            content = @Content(schema = @Schema(implementation = TrackCreationRequest.class)))
     @ApiResponse(responseCode = "400", description = "Invalid track creation request",
             content = @Content(schema = @Schema(example = "{\"error\": \"Invalid input\"}")))
     public ResponseEntity<TrackDTO> createTrack(@RequestBody TrackCreationRequest trackCreationRequest) {
