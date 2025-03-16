@@ -7,6 +7,8 @@ import com.lixegas.co2_monitor.model.request.SensorCreationRequest;
 import com.lixegas.co2_monitor.repository.SensorRepository;
 import com.lixegas.co2_monitor.repository.DistrictRepository;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,9 +25,12 @@ public class SensorService {
     private final SensorRepository sensorRepository;
     private final DistrictRepository districtRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(SensorService.class);
+
     public List<SensorDTO> findAll() {
+        logger.info("Fetching all sensors.");
         try {
-            return sensorRepository.findAll().stream()
+            List<SensorDTO> sensors = sensorRepository.findAll().stream()
                     .map(sensor -> new SensorDTO(
                             sensor.getId(),
                             sensor.getName(),
@@ -33,14 +38,21 @@ public class SensorService {
                             sensor.getUpdatedAt(),
                             sensor.getDistrict().getId()))
                     .collect(Collectors.toList());
-        } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.info("Found {} sensors.", sensors.size());
+            return sensors;
+        } catch (Exception e) {
+            logger.error("Error while fetching sensors: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to fetch sensors");
         }
     }
 
     public SensorDTO findById(Long id) {
+        logger.info("Fetching sensor with id {}", id);
         Sensor sensor = sensorRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    logger.warn("Sensor with id {} not found.", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found");
+                });
 
         return new SensorDTO(
                 sensor.getId(),
@@ -51,24 +63,32 @@ public class SensorService {
     }
 
     public SensorDTO save(SensorCreationRequest sensorCreationRequest) {
-        Sensor sensor = new Sensor();
+        logger.info("Saving new sensor with name {}", sensorCreationRequest.getName());
 
         Optional<Sensor> optionalSensor = sensorRepository.findByName(sensorCreationRequest.getName());
         if (optionalSensor.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
+            logger.warn("Sensor with name {} already exists.", sensorCreationRequest.getName());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Sensor already exists");
         } else {
-            sensor.setName(sensorCreationRequest.getName());
+            logger.info("Sensor with name {} does not exist, proceeding with creation.", sensorCreationRequest.getName());
         }
 
+        Sensor sensor = new Sensor();
+        sensor.setName(sensorCreationRequest.getName());
         sensor.setCreatedAt(Instant.now());
         sensor.setUpdatedAt(null);
 
         District district = districtRepository.findById(sensorCreationRequest.getDistrictId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    logger.warn("District with id {} not found.", sensorCreationRequest.getDistrictId());
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found");
+                });
 
         sensor.setDistrict(district);
+        logger.info("Sensor with name {} assigned to district with id {}", sensorCreationRequest.getName(), district.getId());
 
         Sensor savedSensor = sensorRepository.save(sensor);
+        logger.info("Sensor with id {} and name {} saved successfully.", savedSensor.getId(), savedSensor.getName());
 
         return new SensorDTO(
                 savedSensor.getId(),
@@ -79,13 +99,19 @@ public class SensorService {
     }
 
     public SensorDTO update(Long id, SensorDTO sensorDTO) {
+        logger.info("Updating sensor with id {}", id);
+
         Sensor sensor = sensorRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    logger.warn("Sensor with id {} not found for update.", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found");
+                });
 
         sensor.setName(sensorDTO.getName());
         sensor.setUpdatedAt(Instant.now());
 
         Sensor updatedSensor = sensorRepository.save(sensor);
+        logger.info("Sensor with id {} updated successfully.", updatedSensor.getId());
 
         return new SensorDTO(
                 updatedSensor.getId(),
@@ -96,9 +122,14 @@ public class SensorService {
     }
 
     public void delete(Long id) {
+        logger.info("Attempting to delete sensor with id {}", id);
+
         if (!sensorRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            logger.warn("Sensor with id {} not found for deletion.", id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found");
         }
+
         sensorRepository.deleteById(id);
+        logger.info("Sensor with id {} deleted successfully.", id);
     }
 }
