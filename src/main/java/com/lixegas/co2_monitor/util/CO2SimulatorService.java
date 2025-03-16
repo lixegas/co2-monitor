@@ -31,7 +31,7 @@ public class CO2SimulatorService {
     private final Random random = new Random();
 
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 10000)
     public void simulateCO2Readings() {
         List<City> cities = cityRepository.findAll();
 

@@ -1,5 +1,6 @@
 package com.lixegas.co2_monitor.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lixegas.co2_monitor.model.enumeration.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,10 +21,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String username;
 
     private String pass;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Column(name = "created_at")
@@ -33,5 +35,6 @@ public class User {
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<City> cities;
 }

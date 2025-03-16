@@ -15,5 +15,5 @@ public class DistrictDTO {
     private String name;
     private Instant createdAt;
     private Instant updatedAt;
-    private City city;
+    private Long cityId;
 }

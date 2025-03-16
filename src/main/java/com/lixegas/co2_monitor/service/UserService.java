@@ -1,8 +1,8 @@
 package com.lixegas.co2_monitor.service;
 
-import com.lixegas.co2_monitor.mapper.UserMapper;
 import com.lixegas.co2_monitor.model.User;
 import com.lixegas.co2_monitor.model.dto.UserDTO;
+import com.lixegas.co2_monitor.model.enumeration.Role;
 import com.lixegas.co2_monitor.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,15 +13,27 @@ import java.time.Instant;
 @AllArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+
 
     public UserDTO save(UserDTO userDTO){
-        userDTO.setCreatedAt(Instant.now());
-        userDTO.setUpdatedAt(null);
+        User user = new User();
 
-        User user = userMapper.toEntity(userDTO);
+        user.setUsername(userDTO.getUsername());
+        user.setPass(userDTO.getPass());
+        user.setRole(Role.ADMIN);
+        user.setCreatedAt(Instant.now());
+        user.setUpdatedAt(null);
 
-        userRepository.save(user);
-        return userMapper.toDto(user);
+        User userSaved = userRepository.save(user);
+
+        UserDTO userDTO1 = new UserDTO();
+        userDTO1.setId(userSaved.getId());
+        userDTO1.setUsername(userSaved.getUsername());
+        userDTO1.setPass(userSaved.getPass());
+        userDTO1.setRole(userSaved.getRole());
+        userDTO1.setCreatedAt(userSaved.getCreatedAt());
+        userDTO1.setUpdatedAt(userSaved.getUpdatedAt());
+
+        return userDTO1;
     }
 }

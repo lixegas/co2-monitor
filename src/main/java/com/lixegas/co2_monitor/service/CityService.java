@@ -1,10 +1,11 @@
 package com.lixegas.co2_monitor.service;
 
+import com.lixegas.co2_monitor.model.User;
 import com.lixegas.co2_monitor.model.dto.CityDTO;
 import com.lixegas.co2_monitor.model.City;
-import com.lixegas.co2_monitor.model.dto.UserDTO;
 import com.lixegas.co2_monitor.model.request.CityCreationRequest;
 import com.lixegas.co2_monitor.repository.CityRepository;
+import com.lixegas.co2_monitor.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class CityService {
 
     private final CityRepository cityRepository;
+    private final UserRepository userRepository;
 
     public List<CityDTO> findAll() {
         try {
@@ -30,34 +31,33 @@ public class CityService {
                             city.getCreatedAt(),
                             city.getUpdatedAt()))
                     .collect(Collectors.toList());
-        } catch (Exception exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Errore durante il recupero");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public CityDTO findById(Long id) {
-        City city = cityRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "City not found"));
-
-        return new CityDTO(
-                city.getId(),
-                city.getName(),
-                city.getCreatedAt(),
-                city.getUpdatedAt());
+        return cityRepository.findById(id)
+                .map(city -> new CityDTO(
+                        city.getId(),
+                        city.getName(),
+                        city.getCreatedAt(),
+                        city.getUpdatedAt()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     public CityDTO save(CityCreationRequest cityCreationRequest) {
-        City city = new City();
-
-        Optional<City> existingCity = cityRepository.findByName(cityCreationRequest.getName());
-        if (existingCity.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La città esiste già");
-        } else {
-            city.setName(cityCreationRequest.getName());
+        if (cityRepository.findByName(cityCreationRequest.getName()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
 
+        User user = userRepository.findById(cityCreationRequest.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+
+        City city = new City();
+        city.setName(cityCreationRequest.getName());
         city.setCreatedAt(Instant.now());
-        city.setUpdatedAt(null);
+        city.setUser(user);
 
         City savedCity = cityRepository.save(city);
 
@@ -70,10 +70,15 @@ public class CityService {
 
     public CityDTO update(Long id, CityDTO cityDTO) {
         City city = cityRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "City not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (cityRepository.findByName(cityDTO.getName()).isPresent() && !city.getName().equals(cityDTO.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
+        }
 
         city.setName(cityDTO.getName());
         city.setUpdatedAt(Instant.now());
+
         City updatedCity = cityRepository.save(city);
 
         return new CityDTO(
@@ -84,10 +89,10 @@ public class CityService {
     }
 
     public void delete(Long id) {
-        City city = cityRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "City not found"));
+        if (!cityRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
 
         cityRepository.deleteById(id);
     }
 }
-

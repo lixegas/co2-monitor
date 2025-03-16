@@ -3,6 +3,11 @@ package com.lixegas.co2_monitor.controller;
 import com.lixegas.co2_monitor.model.dto.TrackDTO;
 import com.lixegas.co2_monitor.model.request.TrackCreationRequest;
 import com.lixegas.co2_monitor.service.TrackService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,39 +23,54 @@ public class TrackController {
     private final TrackService trackService;
 
     @GetMapping("/")
+    @Operation(summary = "Get all tracks")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved all tracks",
+            content = @Content(schema = @Schema(implementation = TrackDTO.class)))
+    @ApiResponse(responseCode = "500", description = "Error retrieving tracks",
+            content = @Content(schema = @Schema(example = "{\"error\": \"Internal server error\"}")))
     public ResponseEntity<List<TrackDTO>> getAllTracks() {
         return ResponseEntity.ok(trackService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TrackDTO> getTrackById(@PathVariable Long id) {
-        return trackService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    @Operation(summary = "Get track details by ID")
+    @ApiResponse(responseCode = "200", description = "Track found",
+            content = @Content(schema = @Schema(implementation = TrackDTO.class)))
+    @ApiResponse(responseCode = "404", description = "Track not found",
+            content = @Content(schema = @Schema(example = "{\"error\": \"Track not found\"}")))
+    public ResponseEntity<TrackDTO> getTrackById(
+            @Parameter(description = "Track ID", example = "1") @PathVariable Long id) {
+        return ResponseEntity.ok(trackService.findById(id));
     }
 
     @GetMapping("/sensor/{sensorId}")
+    @Operation(summary = "Get tracks by sensor ID")
+    @ApiResponse(responseCode = "200", description = "Tracks found",
+            content = @Content(schema = @Schema(implementation = TrackDTO.class)))
+    @ApiResponse(responseCode = "404", description = "No tracks found for the sensor",
+            content = @Content(schema = @Schema(example = "{\"error\": \"Tracks not found for the sensor\"}")))
     public ResponseEntity<List<TrackDTO>> getTracksBySensorId(@PathVariable Long sensorId) {
-        List<TrackDTO> trackDTOs = trackService.findTracksBySensorId(sensorId);
-
-        if (trackDTOs.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.ok(trackDTOs);
+        return ResponseEntity.ok(trackService.findTracksBySensorId(sensorId));
     }
 
     @PostMapping("/")
-    public void createTrack(@RequestBody TrackCreationRequest trackCreationRequest) {
-        ResponseEntity.status(HttpStatus.CREATED).body(trackService.save(trackCreationRequest));
+    @Operation(summary = "Create a new track")
+    @ApiResponse(responseCode = "201", description = "Track created successfully",
+            content = @Content(schema = @Schema(implementation = TrackDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid track creation request",
+            content = @Content(schema = @Schema(example = "{\"error\": \"Invalid input\"}")))
+    public ResponseEntity<TrackDTO> createTrack(@RequestBody TrackCreationRequest trackCreationRequest) {
+        TrackDTO createdTrack = trackService.save(trackCreationRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTrack);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a track by ID")
+    @ApiResponse(responseCode = "204", description = "Track deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Track not found",
+            content = @Content(schema = @Schema(example = "{\"error\": \"Track not found\"}")))
     public ResponseEntity<Void> deleteTrack(@PathVariable Long id) {
-        if (trackService.findById(id).isPresent()) {
-            trackService.delete(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        trackService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

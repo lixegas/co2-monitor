@@ -15,5 +15,4 @@ public class CityDTO {
     private String name;
     private Instant createAt;
     private Instant updatedAt;
-    private User user;
 }

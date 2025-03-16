@@ -7,5 +7,4 @@ import lombok.Data;
 public class DistrictCreationRequest {
     private String name;
     private Long cityId;
-
 }

@@ -1,5 +1,6 @@
 package com.lixegas.co2_monitor.service;
 
+import com.lixegas.co2_monitor.model.Sensor;
 import com.lixegas.co2_monitor.model.dto.TrackDTO;
 import com.lixegas.co2_monitor.model.Track;
 import com.lixegas.co2_monitor.model.request.TrackCreationRequest;
@@ -23,32 +24,37 @@ public class TrackService {
     private final SensorRepository sensorRepository;
 
     public List<TrackDTO> findAll() {
-        return trackRepository.findAll().stream()
-                .map(track -> new TrackDTO(
-                        track.getId(),
-                        track.getCo2Level(),
-                        track.getCreatedAt(),
-                        track.getSensor().getId()))
-                .collect(Collectors.toList());
+        try {
+            return trackRepository.findAll().stream()
+                    .map(track -> new TrackDTO(
+                            track.getId(),
+                            track.getCo2Level(),
+                            track.getCreatedAt(),
+                            track.getSensor().getId()))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    public Optional<TrackDTO> findById(Long id) {
+    public TrackDTO findById(Long id) {
         return trackRepository.findById(id)
                 .map(track -> new TrackDTO(
                         track.getId(),
                         track.getCo2Level(),
                         track.getCreatedAt(),
-                        track.getSensor().getId()));
+                        track.getSensor().getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     public TrackDTO save(TrackCreationRequest trackCreationRequest) {
         Track track = new Track();
 
-        var sensor = sensorRepository.findById(trackCreationRequest.getSensorId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found"));
+        Sensor sensor = sensorRepository.findById(trackCreationRequest.getSensorId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         track.setCo2Level(trackCreationRequest.getCo2Level());
-        track.setCreatedAt(Instant.now().toString());
+        track.setCreatedAt(Instant.now());
         track.setSensor(sensor);
 
         Track savedTrack = trackRepository.save(track);
@@ -60,27 +66,26 @@ public class TrackService {
                 savedTrack.getSensor().getId());
     }
 
-
     public void delete(Long id) {
         if (!trackRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         trackRepository.deleteById(id);
     }
 
-
     public List<TrackDTO> findTracksBySensorId(Long sensorId) {
         List<Track> tracks = trackRepository.findBySensorId(sensorId);
 
+        if (tracks.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
         return tracks.stream()
-                .map(track -> {
-                    TrackDTO trackDTO = new TrackDTO();
-                    trackDTO.setId(track.getId());
-                    trackDTO.setCo2Level(track.getCo2Level());
-                    trackDTO.setCreatedAt(track.getCreatedAt());
-                    trackDTO.setSensorId(track.getSensor().getId());
-                    return trackDTO;
-                })
+                .map(track -> new TrackDTO(
+                        track.getId(),
+                        track.getCo2Level(),
+                        track.getCreatedAt(),
+                        track.getSensor().getId()))
                 .collect(Collectors.toList());
     }
 }

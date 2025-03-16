@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 public class UserDTO {
     private Long id;
-    private String name;
+    private String username;
     private String pass;
     private Role role;
     private Instant createdAt;

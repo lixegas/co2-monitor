@@ -6,4 +6,5 @@ import lombok.Data;
 @Data
 public class CityCreationRequest {
     private String name;
+    private Long userId;
 }

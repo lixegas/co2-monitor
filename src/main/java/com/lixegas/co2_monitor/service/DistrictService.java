@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.lixegas.co2_monitor.model.District;
 import com.lixegas.co2_monitor.repository.DistrictRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -37,13 +36,13 @@ public class DistrictService {
                             district.getCity().getId()))
                     .collect(Collectors.toList());
         } catch (Exception exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Errore durante il recupero");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public DistrictDTO findById(Long id) {
         District district = districtRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return new DistrictDTO(
                 district.getId(),
@@ -57,8 +56,8 @@ public class DistrictService {
         District district = new District();
 
         Optional<District> districtOptional = districtRepository.findByName(districtCreationRequest.getName());
-        if(districtOptional.isPresent()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Questo distretto esiste già");
+        if (districtOptional.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         } else {
             district.setName(districtCreationRequest.getName());
         }
@@ -66,14 +65,12 @@ public class DistrictService {
         district.setCreatedAt(Instant.now());
         district.setUpdatedAt(null);
 
-
         Optional<City> cityOptional = cityRepository.findById(districtCreationRequest.getCityId());
-        if (cityOptional.isPresent()){
-            City city = new City();
-            city.setId(districtCreationRequest.getCityId());
+        if (cityOptional.isPresent()) {
+            City city = cityOptional.get();
             district.setCity(city);
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Questa città non esiste");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         District savedDistrict = districtRepository.save(district);
@@ -88,13 +85,14 @@ public class DistrictService {
 
     public DistrictDTO update(Long id, DistrictDTO districtDTO) {
         District district = districtRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (districtRepository.findByName(districtDTO.getName()).isPresent() && !district.getName().equals(districtDTO.getName())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
+        }
 
         district.setName(districtDTO.getName());
         district.setUpdatedAt(Instant.now());
-
-        Optional<City> optionalCity = cityRepository.findById(districtDTO.getCityId());
-        optionalCity.ifPresent(district::setCity);
 
         District updatedDistrict = districtRepository.save(district);
 
@@ -106,9 +104,10 @@ public class DistrictService {
                 updatedDistrict.getCity().getId());
     }
 
+
     public void delete(Long id) {
         District district = districtRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         districtRepository.deleteById(id);
     }

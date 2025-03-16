@@ -3,7 +3,7 @@ CREATE SCHEMA co2_monitor;
 USE co2_monitor;
 
 CREATE TABLE User(
-id BIGINT PRIMARY KEY,
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
 username VARCHAR(100) NOT NULL,
 pass VARCHAR(100) NOT NULL,
 role VARCHAR(10) NOT NULL,
@@ -14,8 +14,8 @@ updated_at TIMESTAMP
 CREATE TABLE City (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
-    created_at VARCHAR(255) NOT NULL,
-    updated_at VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
     fk_id_user BIGINT NOT NULL,
     FOREIGN KEY (fk_id_user) REFERENCES User(id) ON DELETE CASCADE
 );
@@ -24,8 +24,8 @@ CREATE TABLE City (
 CREATE TABLE District (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
-    created_at VARCHAR(255) NOT NULL,
-    updated_at VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
     fk_id_city BIGINT NOT NULL,
     FOREIGN KEY (fk_id_city) REFERENCES City(id) ON DELETE CASCADE
 );
@@ -34,8 +34,8 @@ CREATE TABLE District (
 CREATE TABLE Sensor (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
-    created_at VARCHAR(255) NOT NULL,
-    updated_at VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
     fk_id_district BIGINT NOT NULL UNIQUE,
     FOREIGN KEY (fk_id_district) REFERENCES District(id) ON DELETE CASCADE
 );
@@ -44,7 +44,7 @@ CREATE TABLE Sensor (
 CREATE TABLE Track (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     co2Level DOUBLE,
-    created_at VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
     fk_id_sensor BIGINT NOT NULL,
     FOREIGN KEY (fk_id_sensor) REFERENCES Sensor(id) ON DELETE CASCADE
 );

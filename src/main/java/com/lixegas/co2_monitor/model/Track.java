@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,7 +21,7 @@ public class Track {
     private Double co2Level;
 
     @Column(name = "created_at")
-    private String createdAt;
+    private Instant createdAt;
 
     @ManyToOne
     @JoinColumn(name = "fk_id_sensor", nullable = false)

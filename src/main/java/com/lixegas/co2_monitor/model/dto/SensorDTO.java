@@ -16,5 +16,5 @@ public class SensorDTO {
     private String name;
     private Instant createdAt;
     private Instant updatedAt;
-    private District district;
+    private Long districtId;
 }

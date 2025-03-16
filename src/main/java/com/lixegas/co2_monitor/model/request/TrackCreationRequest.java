@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class TrackCreationRequest {
-
     private Double co2Level;
     private Long sensorId;
 }

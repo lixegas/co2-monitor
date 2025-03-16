@@ -34,28 +34,28 @@ public class SensorService {
                             sensor.getDistrict().getId()))
                     .collect(Collectors.toList());
         } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Errore durante il recupero");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public SensorDTO findById(Long id) {
         Sensor sensor = sensorRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Distretto non trovato"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         return new SensorDTO(
-                        sensor.getId(),
-                        sensor.getName(),
-                        sensor.getCreatedAt(),
-                        sensor.getUpdatedAt(),
-                        sensor.getDistrict().getId());
+                sensor.getId(),
+                sensor.getName(),
+                sensor.getCreatedAt(),
+                sensor.getUpdatedAt(),
+                sensor.getDistrict().getId());
     }
 
     public SensorDTO save(SensorCreationRequest sensorCreationRequest) {
         Sensor sensor = new Sensor();
 
         Optional<Sensor> optionalSensor = sensorRepository.findByName(sensorCreationRequest.getName());
-        if (optionalSensor.isPresent()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Questo sensore gia esiste");
+        if (optionalSensor.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         } else {
             sensor.setName(sensorCreationRequest.getName());
         }
@@ -64,7 +64,7 @@ public class SensorService {
         sensor.setUpdatedAt(null);
 
         District district = districtRepository.findById(sensorCreationRequest.getDistrictId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "District not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         sensor.setDistrict(district);
 
@@ -80,7 +80,7 @@ public class SensorService {
 
     public SensorDTO update(Long id, SensorDTO sensorDTO) {
         Sensor sensor = sensorRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         sensor.setName(sensorDTO.getName());
         sensor.setUpdatedAt(Instant.now());
@@ -97,7 +97,7 @@ public class SensorService {
 
     public void delete(Long id) {
         if (!sensorRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         sensorRepository.deleteById(id);
     }
