@@ -1,5 +1,6 @@
 package com.lixegas.co2_monitor.service;
 
+import com.lixegas.co2_monitor.mapper.CityMapper;
 import com.lixegas.co2_monitor.model.User;
 import com.lixegas.co2_monitor.model.dto.CityDTO;
 import com.lixegas.co2_monitor.model.City;
@@ -23,6 +24,7 @@ public class CityService {
 
     private final CityRepository cityRepository;
     private final UserRepository userRepository;
+    private final CityMapper cityMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(CityService.class);
 
@@ -30,31 +32,23 @@ public class CityService {
         logger.info("Fetching all cities.");
         try {
             List<CityDTO> cities = cityRepository.findAll().stream()
-                    .map(city -> new CityDTO(
-                            city.getId(),
-                            city.getName(),
-                            city.getCreatedAt(),
-                            city.getUpdatedAt()))
+                    .map(cityMapper::toDto)
                     .collect(Collectors.toList());
             logger.info("Found {} cities.", cities.size());
             return cities;
         } catch (Exception e) {
             logger.error("Error while fetching cities: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to fetch cities");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public CityDTO findById(Long id) {
         logger.info("Fetching city with id {}", id);
         return cityRepository.findById(id)
-                .map(city -> new CityDTO(
-                        city.getId(),
-                        city.getName(),
-                        city.getCreatedAt(),
-                        city.getUpdatedAt()))
+                .map(cityMapper::toDto)
                 .orElseThrow(() -> {
                     logger.warn("City with id {} not found.", id);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "City not found");
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
                 });
     }
 
@@ -63,13 +57,13 @@ public class CityService {
 
         if (cityRepository.findByName(cityCreationRequest.getName()).isPresent()) {
             logger.warn("City with name {} already exists.", cityCreationRequest.getName());
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "City already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
 
         User user = userRepository.findById(cityCreationRequest.getUserId())
                 .orElseThrow(() -> {
                     logger.warn("User with id {} not found.", cityCreationRequest.getUserId());
-                    return new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
+                    return new ResponseStatusException(HttpStatus.BAD_REQUEST);
                 });
 
         City city = new City();
@@ -80,11 +74,7 @@ public class CityService {
         City savedCity = cityRepository.save(city);
         logger.info("City with id {} and name {} saved successfully.", savedCity.getId(), savedCity.getName());
 
-        return new CityDTO(
-                savedCity.getId(),
-                savedCity.getName(),
-                savedCity.getCreatedAt(),
-                savedCity.getUpdatedAt());
+        return cityMapper.toDto(savedCity);
     }
 
     public CityDTO update(Long id, CityDTO cityDTO) {
@@ -93,12 +83,12 @@ public class CityService {
         City city = cityRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.warn("City with id {} not found for update.", id);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "City not found");
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
                 });
 
         if (cityRepository.findByName(cityDTO.getName()).isPresent() && !city.getName().equals(cityDTO.getName())) {
             logger.warn("City name {} already exists, cannot update.", cityDTO.getName());
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "City name already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
 
         city.setName(cityDTO.getName());
@@ -107,11 +97,7 @@ public class CityService {
         City updatedCity = cityRepository.save(city);
         logger.info("City with id {} updated successfully.", updatedCity.getId());
 
-        return new CityDTO(
-                updatedCity.getId(),
-                updatedCity.getName(),
-                updatedCity.getCreatedAt(),
-                updatedCity.getUpdatedAt());
+        return cityMapper.toDto(updatedCity);
     }
 
     public void delete(Long id) {
@@ -119,7 +105,7 @@ public class CityService {
 
         if (!cityRepository.existsById(id)) {
             logger.warn("City with id {} not found for deletion.", id);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "City not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         cityRepository.deleteById(id);

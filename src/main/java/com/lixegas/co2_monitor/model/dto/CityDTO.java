@@ -13,6 +13,6 @@ import java.time.Instant;
 public class CityDTO {
     private Long id;
     private String name;
-    private Instant createAt;
+    private Instant createdAt;
     private Instant updatedAt;
 }
